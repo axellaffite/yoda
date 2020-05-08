@@ -40,17 +40,10 @@ class YodaTester : Fragment() {
     }
 
     private fun generateRandomEvents() {
-        val set = mutableSetOf(
-            createEvent(0, 0, 4),
-            createEvent(0, 0, 1),
-            createEvent(2, 0, 1),
-            createEvent(0, 30, 1),
-            createEvent(3, 30, 1),
-            createEvent(4, 10, 1),
-            createEvent(4, 10, 1),
-            createEvent(4, 10, 1),
-            createEvent(4, 10, 1)
-        )
+        var events = listOf<Event>()
+        for (i in 0..10) {
+            events = events + randomEvent()
+        }
 
         day_yoda.setViewBuilder { context, event, x, y, width, height ->
             Pair(true, EventCardView(context).apply {
@@ -65,11 +58,16 @@ class YodaTester : Fragment() {
             })
         }
 
-        day_yoda.setEvents(viewLifecycleOwner.lifecycleScope, set.toList())
+        day_yoda.setEvents(viewLifecycleOwner.lifecycleScope, events)
+    }
+
+    private fun randomEvent() : Event {
+        val rand = Random()
+        return createEvent(rand.nextInt(10) + 5, rand.nextInt(60), rand.nextInt(3))
     }
 
 
-    private fun createEvent(hour: Int, minute: Int, time : Int) : EventWrapper {
+    private fun createEvent(hour: Int, minute: Int, time : Int) : Event {
         val c = Calendar.getInstance()
         c.set(2019, 12, 21, hour, minute, 0)
         val deb = c.time
@@ -77,12 +75,10 @@ class YodaTester : Fragment() {
         val fin = c.time
 
         return Event(
-            Event(
-                deb,
-                fin,
-                randomTitle(),
-                randomDescription()
-            )
+            deb,
+            fin,
+            randomTitle(),
+            randomDescription()
         )
     }
 

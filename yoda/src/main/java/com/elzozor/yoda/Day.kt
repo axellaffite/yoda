@@ -21,7 +21,6 @@ import java.io.InvalidObjectException
 import java.util.*
 import java.util.Calendar.HOUR_OF_DAY
 import java.util.Calendar.MINUTE
-
 class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs) {
 
     private var hourHeight = resources.getDimension(R.dimen.hour_height).toInt()
@@ -163,7 +162,7 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
     private fun checkHoursFit(events: List<EventWrapper>) {
         if (autoFitHours) {
             val startHour = (events.fold(listOf()) { acc: List<Date>, ev -> acc + ev.begin() }).min()
-            val endHour = (events.fold(listOf()) { acc: List<Date>, ev -> acc + ev.end()}).max()
+            val endHour = (events.fold(listOf()) { acc: List<Date>, ev -> acc + ev.end() }).max()
 
             val cal = Calendar.getInstance()
             if (startHour is Date) {
@@ -252,7 +251,7 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
         heightOffset: Int
     ) {
         organizedEvents.forEach { event ->
-            val ey = computeEventPosition(event) + heightOffset
+            val ey = computeEventPosition(event) - heightOffset
             val ex = event.x.toInt() + hourWidth
             val eheight = computeEventHeight(event)
             val ewidth = event.width
@@ -310,4 +309,5 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
         return (millisecondsToHours(rangeBetweenDates(event.begin(), event.end())) * hourHeight).toInt()
     }
 }
+
 
