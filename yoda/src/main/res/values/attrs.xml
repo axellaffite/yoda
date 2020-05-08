@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="Day">
+        <attr name="start" format="integer"/>
+        <attr name="end" format="integer"/>
+        <attr name="fitToScreen" format="boolean"/>
+    </declare-styleable>
+</resources>
