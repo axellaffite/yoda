@@ -18,8 +18,7 @@
             android:id="@+id/day_yoda"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:start="0"
-            app:end="10">
+            app:autoFitHours="true">
 
         </com.elzozor.yoda.Day>
     </ScrollView>

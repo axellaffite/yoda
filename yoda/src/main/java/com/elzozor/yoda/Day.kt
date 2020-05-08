@@ -19,14 +19,17 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import java.io.InvalidObjectException
 import java.util.*
+import java.util.Calendar.HOUR_OF_DAY
+import java.util.Calendar.MINUTE
+
 class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs) {
 
-    private var hourHeight = resources.getDimension(R.dimen.hour_height)
-    private val start: Int
-    private val end: Int
+    private var hourHeight = resources.getDimension(R.dimen.hour_height).toInt()
+    private var start: Int
+    private var end: Int
     private var currentJob: Job? = null
 
-    private var fitToScreen = false
+    var autoFitHours = false
 
     private lateinit var containerBuilder: (Context, EventWrapper, Int, Int, Int, Int) -> Pair<Boolean, View>
 
@@ -40,7 +43,7 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
             try {
                 start = getInteger(R.styleable.Day_start, 0).coerceAtLeast(0)
                 end = getInteger(R.styleable.Day_end, 24).coerceAtMost(24)
-                fitToScreen = getBoolean(R.styleable.Day_fitToScreen, false)
+                autoFitHours = getBoolean(R.styleable.Day_autoFitHours, false)
             } finally {
                 recycle()
             }
@@ -134,21 +137,45 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
      * @param events The events to organize
      */
     private suspend fun organizeEventsInBackground(events: List<EventWrapper>) {
-        val currentHourHeight = when (fitToScreen) {
-            true -> hourHeight
-            false -> hourHeight
-        }.toInt()
+        checkHoursFit(events)
 
         val totalWidth = day_container.width
         val hourWidth = totalWidth / 10
         val eventsWidth = totalWidth - hourWidth
-        val heightOffset = start * currentHourHeight
+        val heightOffset = start * hourHeight
 
         val organizedEvents = organizeEvents(events, eventsWidth)
 
         clearViews()
-        addHoursToView(hourWidth, currentHourHeight, heightOffset)
+        addHoursToView(hourWidth, hourHeight, heightOffset)
         addEventsToView(organizedEvents, hourWidth, heightOffset)
+    }
+
+
+    /**
+     * If the autoFithours var is set to true,
+     * this function will automatically fits
+     * the starting and ending hours to the
+     * events bounds.
+     *
+     * @param events The events list you want to plot
+     */
+    private fun checkHoursFit(events: List<EventWrapper>) {
+        if (autoFitHours) {
+            val startHour = (events.fold(listOf()) { acc: List<Date>, ev -> acc + ev.begin() }).min()
+            val endHour = (events.fold(listOf()) { acc: List<Date>, ev -> acc + ev.end()}).max()
+
+            val cal = Calendar.getInstance()
+            if (startHour is Date) {
+                cal.time = startHour
+                start = cal.get(HOUR_OF_DAY)
+            }
+
+            if (endHour is Date) {
+                cal.time = endHour
+                end = cal.get(HOUR_OF_DAY) + 1
+            }
+        }
     }
 
 
@@ -167,9 +194,9 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
 
         return EventOrganizer(events.filter {
             cal.time = it.begin()
-            val hourBeg = cal.get(Calendar.HOUR_OF_DAY)
+            val hourBeg = cal.get(HOUR_OF_DAY)
             cal.time = it.end()
-            val hourEnd = cal.get(Calendar.HOUR_OF_DAY)
+            val hourEnd = cal.get(HOUR_OF_DAY)
 
             hourBeg >= start && hourEnd <= end && hourBeg < hourEnd
         }).orgnanize(screenWidth)
@@ -265,6 +292,15 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
     }
 
 
+    /**
+     * Computes the event position given
+     * by the begin of the event.
+     * This height will be relative to the
+     * starting hour of the day.
+     *
+     * @param event
+     * @return
+     */
     private fun computeEventPosition(event: EventWrapper): Int {
         return (millisecondsToHours(onlyTimeAsMs(event.begin())) * hourHeight).toInt()
     }

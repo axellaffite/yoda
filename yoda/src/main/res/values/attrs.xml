@@ -3,6 +3,6 @@
     <declare-styleable name="Day">
         <attr name="start" format="integer"/>
         <attr name="end" format="integer"/>
-        <attr name="fitToScreen" format="boolean"/>
+        <attr name="autoFitHours" format="boolean"/>
     </declare-styleable>
 </resources>
