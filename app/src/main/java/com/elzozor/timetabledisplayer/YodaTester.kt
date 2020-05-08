@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.RelativeLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.elzozor.yoda.events.EventWrapper
@@ -51,11 +53,15 @@ class YodaTester : Fragment() {
         )
 
         day_yoda.setViewBuilder { context, event, x, y, width, height ->
-            Pair(false, EventCardView(context).apply {
+            Pair(true, EventCardView(context).apply {
                 setBackgroundColor(Color.parseColor(randomColor()))
-
                 setEvent(event as Event)
-                requestLayout()
+
+                val params = RelativeLayout.LayoutParams(width, height)
+                params.leftMargin = x
+                params.topMargin = y
+
+                layoutParams = params
             })
         }
 

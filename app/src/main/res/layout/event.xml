@@ -15,7 +15,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:text="cecec"
         android:textColor="@android:color/white"
         android:textSize="14sp"
         android:textStyle="bold" />
