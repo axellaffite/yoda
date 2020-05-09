@@ -31,7 +31,7 @@ Ensure you have implemented the library correctly.
 
 #### Step 2 - Creating the layout
 
-You must create a layout where you store the Day view.  
+You must create a layout where you'll store the Day view.  
 The Day view will expand to fit it's content so you may want to include it into a ScrollView.
 
 ```xml
@@ -40,10 +40,6 @@ The Day view will expand to fit it's content so you may want to include it into 
 <ScrollView
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
 
     <com.elzozor.yoda.Day
         android:id="@+id/day_yoda"
@@ -68,11 +64,8 @@ Here is a very basic example :
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="3dp"
     android:id="@+id/EventCardView" >
 
     <TextView
@@ -113,18 +106,21 @@ class EventCardView(context: Context,
         inflate(context, R.layout.event, this)
     }
 
-    fun setEvent(event: Event) : EventCardView {
+    fun setEvent(event: Event) {
         this.event = event
-        title.text = event.title
-        return this
+        setText(event.title)
+    }
+
+    fun setText(text: String) {
+        title.text = text
     }
 }
 ```
 
 #### Step 4 - Extends EventWrapper
 
-As you may have seen, the setEvents function takes to parameters, a `LifecycleCoroutineScope` and a list of EventWrapper.  
-We will get into the first parameters later, for now, let's focus on the second one.  
+As you may have seen, the setEvents function takes two parameters, a `LifecycleCoroutineScope` and a list of EventWrapper.  
+We will get into the first parameter later, for now, let's focus on the second one.  
 
 As it takes an EventWrapper, you must provide a class that extends this one.  
 Two functions must be overriden as they are abstract.  
@@ -139,20 +135,21 @@ class Event (
     val begin : Date,
     val end : Date,
     val title : String,
-    val description : String) : EventWrapper()
-{
+    val description : String) 
+    : EventWrapper() {
+
     override fun begin() = begin
 
     override fun end() = end
 }
 ```
 
-You can now simply pass a list of you Event class to the `setEvents` function of the Day layout !
+You can now simply pass a list of your Event class to the `setEvents` function of the Day layout !
 
 
 #### Step 5 - Use the Day layout !
 
-You must provide a way to the Day layout to build the events views otherwise, it will throw an Exception.  
+You must provide a way for the Day layout to build the events views, otherwise it will throw an Exception.  
 You do it by calling the `setViewBuilder` function of the Day layout. This function takes a single parameter which is a lambda with the following signature :
 
 ```kotlin
@@ -166,7 +163,7 @@ You do it by calling the `setViewBuilder` function of the Day layout. This funct
 
 As you can see, this function must return a Pair including a Boolean and a View.  
 The Boolean is here to say whether or not you have set the Layout constraint (i.e: You have set the LayoutParams).  
-The view is the created view that the Day layout will show.
+The view is the one that the Day layout will show.
 
 Here is an example :
 
@@ -198,7 +195,7 @@ day_yoda.setViewBuilder { context, event, x, y, width, height ->
 
 You can now use the `setEvents` function just like this :
 ```kotlin
-day_yoda.setEvents(viewLifecycleOwner.lifecycleScope, set.toList())
+day_yoda.setEvents(viewLifecycleOwner.lifecycleScope, myEventList)
 ```
 
 The Yoda library will now display the events into the Day layout in a background thread which will stop when your application is paused.  
