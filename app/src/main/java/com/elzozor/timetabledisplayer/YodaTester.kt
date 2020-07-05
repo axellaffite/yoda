@@ -5,17 +5,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.elzozor.yoda.events.EventWrapper
-import com.google.android.material.color.MaterialColors
 import kotlinx.android.synthetic.main.yoda_tester_fragment.*
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 import org.koin.android.architecture.ext.viewModel
 import java.util.*
 import java.util.Calendar.HOUR
-import java.util.Calendar.HOUR_OF_DAY
 
 
 class YodaTester : Fragment() {
@@ -24,7 +23,9 @@ class YodaTester : Fragment() {
         fun newInstance() = YodaTester()
     }
 
-    private val model : YodaTesterViewModel by viewModel()
+    private val model: YodaTesterViewModel by viewModel()
+
+    private var job: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,25 +41,29 @@ class YodaTester : Fragment() {
     }
 
     private fun generateRandomEvents() {
-        var events = listOf<Event>()
-        for (i in 0..10) {
-            events = events + randomEvent()
+        job?.cancel()
+        job = lifecycleScope.launchWhenResumed {
+            day_yoda.setViewBuilder { context, event, x, y, width, height ->
+                Pair(true, EventCardView(context).apply {
+                    setBackgroundColor(Color.parseColor(randomColor()))
+                    setEvent(event as Event)
+
+                    val params = RelativeLayout.LayoutParams(width, height)
+                    params.leftMargin = x
+                    params.topMargin = y
+
+                    layoutParams = params
+                })
+            }
+
+            val events = withContext(Default) {
+                (0..1000).map {
+                    randomEvent()
+                }
+            }
+
+            day_yoda.setEvents(events)
         }
-
-        day_yoda.setViewBuilder { context, event, x, y, width, height ->
-            Pair(true, EventCardView(context).apply {
-                setBackgroundColor(Color.parseColor(randomColor()))
-                setEvent(event as Event)
-
-                val params = RelativeLayout.LayoutParams(width, height)
-                params.leftMargin = x
-                params.topMargin = y
-
-                layoutParams = params
-            })
-        }
-
-        day_yoda.setEvents(viewLifecycleOwner.lifecycleScope, events)
     }
 
     private fun randomEvent() : Event {
