@@ -195,7 +195,7 @@ day_yoda.setViewBuilder { context, event, x, y, width, height ->
 
 You can now use the `setEvents` function just like this :
 ```kotlin
-viewLifecycleOwner.lifecycleScope.launch {
+lifecycleScope.launchWhenResumed {
   day_yoda.setEvents(myEventList)
 }
 ```
