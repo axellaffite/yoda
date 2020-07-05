@@ -195,7 +195,9 @@ day_yoda.setViewBuilder { context, event, x, y, width, height ->
 
 You can now use the `setEvents` function just like this :
 ```kotlin
-day_yoda.setEvents(viewLifecycleOwner.lifecycleScope, myEventList)
+viewLifecycleOwner.lifecycleScope.launch {
+  day_yoda.setEvents(myEventList)
+}
 ```
 
 The Yoda library will now display the events into the Day layout in a background thread which will stop when your application is paused.  
