@@ -3,6 +3,14 @@
     <declare-styleable name="Day">
         <attr name="start" format="integer"/>
         <attr name="end" format="integer"/>
-        <attr name="autoFitHours" format="boolean"/>
+        <attr name="displayMode" format="enum">
+            <enum name="EXPAND" value="0"/>
+            <enum name="FIT_TO_CONTAINER" value="1"/>
+        </attr>
+        <attr name="fit" format="enum">
+            <enum name="AUTO" value="0"/>
+            <enum name="BOUNDS_ADAPTIVE" value="1"/>
+            <enum name="BOUNDS_STRICT" value="2"/>
+        </attr>
     </declare-styleable>
 </resources>

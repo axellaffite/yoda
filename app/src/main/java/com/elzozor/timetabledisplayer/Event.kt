@@ -3,7 +3,7 @@ package com.elzozor.timetabledisplayer
 import com.elzozor.yoda.events.EventWrapper
 import java.util.*
 
-open class Event (
+data class Event (
     val begin : Date,
     val end : Date,
     val title : String,
@@ -12,4 +12,6 @@ open class Event (
     override fun begin() = begin
 
     override fun end() = end
+
+    override fun isAllDay() = begin == end
 }

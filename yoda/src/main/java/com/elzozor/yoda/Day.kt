@@ -4,10 +4,13 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.elzozor.yoda.events.EventOrganizer
 import com.elzozor.yoda.events.EventWrapper
+import com.elzozor.yoda.utils.DateExtensions.get
 import com.elzozor.yoda.utils.TimeUtils.Companion.millisecondsToHours
 import com.elzozor.yoda.utils.TimeUtils.Companion.onlyTimeAsMs
 import com.elzozor.yoda.utils.TimeUtils.Companion.rangeBetweenDates
@@ -19,15 +22,91 @@ import java.io.InvalidObjectException
 import java.util.*
 import java.util.Calendar.HOUR_OF_DAY
 
-class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs) {
+class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs) {
 
-    private var hourHeight = resources.getDimension(R.dimen.hour_height).toInt()
+    /**
+     * Defines the display mode.
+     * - EXPAND means that the view will expand until
+     *   all the events are displayed with the
+     *   default hoursHeight size ( 48dp per hour )
+     * - FIT_TO_CONTAINER means that the view
+     *   will fit to the size which is provided
+     *   in the setEvents() function.
+     */
+    enum class Display { EXPAND, FIT_TO_CONTAINER }
+
+    /**
+    * Defines the fit mode.
+    * - AUTO means that the Day hours will fit
+    *   the events hours. For example if the first
+    *   event starts at 8am and the last one ends at
+    *   10am, the start variable will be set to 8 and
+    *   the end variable will be set to 11. (end hours + 1).
+    */
+    enum class Fit { AUTO, BOUNDS_ADAPTIVE, BOUNDS_STRICT }
+
+    /**
+    * Defines the height of the hours
+    * Is updated when the updateHoursHeight function
+    * is called.
+    */
+    private var hourHeight = 0
+
+    /**
+    * These two variable defines the start
+    * and end hours of the Day view.
+    */
     private var start: Int
     private var end: Int
 
-    var autoFitHours = false
+    /**
+    * Defines the display mode.
+    * See the enum class Display documentation
+    * above.
+    */
+    var displayMode = Display.EXPAND
 
-    private lateinit var containerBuilder: (Context, EventWrapper, Int, Int, Int, Int) -> Pair<Boolean, View>
+    /**
+    * Defines the fit mode.
+    * Se tge enum class Fit
+    * documentation above.
+    */
+    var fit = Fit.AUTO
+
+    /**
+     * This function defines how the Events views
+     * must be constructed.
+     * The parameters are :
+     * - A context given by the function
+     * - An EventWrapper that contains the current
+     *   event to build
+     * - x, y, w, h which are the position and size
+     *   of the EventView.
+     *
+     * The return of this function is a Pair that contains
+     * in first argument if the constraints have been set
+     * on the returned View ( position and size ) and in
+     * second argument the constructed view.
+     */
+    lateinit var dayBuilder: (Context, EventWrapper, Int, Int, Int, Int) -> Pair<Boolean, View>
+
+    /**
+     * This function constructs the "all day view" where
+     * are display the events that are affiliated to the entire
+     * day and not only to a specific time.
+     *
+     * Put another way, there are the EventWrappers that returns
+     * true to the isAllDay() function.
+     */
+    lateinit var allDayBuilder: (List<EventWrapper>) -> View
+
+    /**
+     * This function simply construct the view
+     * that is displayed when the day is empty.
+     *
+     * Simply do want you want !
+     */
+    lateinit var emptyDayBuilder: () -> View
 
     init {
         context.theme.obtainStyledAttributes(
@@ -39,7 +118,8 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
             try {
                 start = getInteger(R.styleable.Day_start, 0).coerceAtLeast(0)
                 end = getInteger(R.styleable.Day_end, 24).coerceAtMost(24)
-                autoFitHours = getBoolean(R.styleable.Day_autoFitHours, false)
+                displayMode = Display.values()[getInt(R.styleable.Day_displayMode,  0)]
+                fit = Fit.values()[getInt(R.styleable.Day_fit, 0)]
             } finally {
                 recycle()
             }
@@ -50,35 +130,14 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
 
 
     /**
-     * This function is used to provide to the
-     * event organizer a callback which will build
-     * each views.
-     * The params passed to the callback are a valid context,
-     * the event you originaly provided, and all the constraints
-     * that the view should match.
-     *
-     * The constraints are passed in the callback to let
-     * the user do what he want with them, in this
-     * case, true must be return with the view.
-     *
-     * Although, if you don't want to set the constraints
-     * by yourself, just return false in the result.
-     *
-     * @param builder The view builder
-     */
-    fun setViewBuilder(
-        builder: (context: Context, event: EventWrapper,
-                  x: Int, y: Int, width: Int, height: Int)
-        -> Pair<Boolean, View>)
-    {
-        containerBuilder = builder
-    }
-
-
-    /**
      * To use this function you must have provided the
-     * view builder function with the "setContainerBuilder"
-     * function.
+     * view builder functions that are :
+     *  - dayBuilder
+     *  - allDayBuilder
+     *  - emptyDayBuilder
+     *
+     * See their documentation for more information.
+     * You set them directly by assigning them a value.
      *
      * This function will arrange the events in such a
      * way that they fill the whole screen width.
@@ -89,12 +148,20 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
      * @param events
      */
     @Throws(InvalidObjectException::class)
-    suspend fun setEvents(events: List<EventWrapper>) {
-        if (!this::containerBuilder.isInitialized) {
-            throw InvalidObjectException("You must provide a view Builder via the 'setContainerBuilder' function")
+    suspend fun setEvents(events: List<EventWrapper>, containerHeight: Int) {
+        if (!this::dayBuilder.isInitialized) {
+            throw InvalidObjectException("You must initialize the 'dayBuilder' variable!")
         }
 
-        organizeEventsInBackground(events)
+        if (!this::allDayBuilder.isInitialized) {
+            throw InvalidObjectException("You must initialize the 'allDayBuilder' variable!")
+        }
+
+        if (!this::emptyDayBuilder.isInitialized) {
+            throw InvalidObjectException("You must initialize the 'emptyDayBuilder' variable!")
+        }
+
+        organizeEventsInBackground(events, containerHeight)
     }
 
 
@@ -104,20 +171,22 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
      *
      * @param events The events to organize
      */
-    private suspend fun organizeEventsInBackground(events: List<EventWrapper>) =
+    private suspend fun organizeEventsInBackground(events: List<EventWrapper>, containerHeight: Int) =
         withContext(Default) {
             checkHoursFit(events)
+            updateHourHeight(containerHeight)
 
             val totalWidth = day_container.width
             val hourWidth = totalWidth / 10
             val eventsWidth = totalWidth - hourWidth
             val heightOffset = start * hourHeight
 
-            val organizedEvents = organizeEvents(events, eventsWidth)
+            val allDayEvents = events.filter { it.isAllDay() }
+            val organizedEvents = organizeEvents(events.filter { !it.isAllDay() }, eventsWidth)
 
             clearViews()
             addHoursToView(hourWidth, hourHeight, heightOffset)
-            addEventsToView(organizedEvents, hourWidth, heightOffset)
+            addEventsToView(allDayEvents, organizedEvents, hourWidth, heightOffset)
         }
 
 
@@ -130,20 +199,38 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
      * @param events The events list you want to plot
      */
     private fun checkHoursFit(events: List<EventWrapper>) {
-        if (autoFitHours) {
-            val startHour = (events.fold(listOf()) { acc: List<Date>, ev -> acc + ev.begin() }).min()
-            val endHour = (events.fold(listOf()) { acc: List<Date>, ev -> acc + ev.end() }).max()
+        val startDate = events.map { it.begin() }.min()
+        val endDate = events.map { it.end() }.max()
 
-            val cal = Calendar.getInstance()
-            if (startHour is Date) {
-                cal.time = startHour
-                start = cal.get(HOUR_OF_DAY)
+        when (fit) {
+            Fit.AUTO -> {
+                startDate.get(HOUR_OF_DAY)?.let {
+                    start = it
+                }
+
+                endDate.get(HOUR_OF_DAY)?.let {
+                    end = it + 1
+                }
             }
 
-            if (endHour is Date) {
-                cal.time = endHour
-                end = cal.get(HOUR_OF_DAY) + 1
+            Fit.BOUNDS_ADAPTIVE -> {
+                startDate.get(HOUR_OF_DAY)?.let {
+                    start = start.coerceAtMost(it)
+                }
+
+                endDate.get(HOUR_OF_DAY)?.let {
+                    end = end.coerceAtLeast(it + 1)
+                }
             }
+
+            else -> {}
+        }
+    }
+
+    private fun updateHourHeight(containerHeight: Int) {
+        hourHeight = when (displayMode) {
+            Display.EXPAND -> resources.getDimension(R.dimen.hour_height).toInt()
+            Display.FIT_TO_CONTAINER -> containerHeight / (end - start)
         }
     }
 
@@ -167,7 +254,7 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
                 val hourEnd = cal.get(HOUR_OF_DAY)
 
                 hourBeg >= start && hourEnd <= end && hourBeg < hourEnd
-            }).orgnanize(screenWidth)
+            }).organize(screenWidth)
         }
 
 
@@ -177,6 +264,8 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
     private suspend fun clearViews() =
         withContext(Main) {
             day_container.removeAllViews()
+            all_day_container.removeAllViews()
+            empty_day.removeAllViews()
         }
 
 
@@ -191,10 +280,9 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
     private suspend fun addHoursToView(hourWidth: Int, hourHeight: Int, heightOffset: Int) =
         withContext(Default) {
             for (hour in start until end) {
-                addEventView(
-                    TextView(context).apply {
+                addViewOnMainThread(day_container, TextView(context).apply {
                         text = hour.toString()
-                        layoutParams = LayoutParams(hourWidth, hourHeight).apply {
+                        layoutParams = RelativeLayout.LayoutParams(hourWidth, hourHeight).apply {
                             this.topMargin = (hour * hourHeight) - heightOffset
                             this.leftMargin = 0
                             gravity = Gravity.CENTER_HORIZONTAL
@@ -214,17 +302,45 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
      * the starting hour is greater than 0.
      */
     private suspend fun addEventsToView (
+        allDayEvents: List<EventWrapper>,
         organizedEvents: List<EventWrapper>,
         hourWidth: Int,
         heightOffset: Int
     ) {
+        setViewsVisibility(allDayEvents.isNotEmpty(), organizedEvents.isNotEmpty())
+
+        if (allDayEvents.isEmpty() && organizedEvents.isEmpty()) {
+            setupEmptyDayView()
+        } else {
+            if (allDayEvents.isNotEmpty()) {
+                setupAllDayView(allDayEvents)
+            }
+
+            if (organizedEvents.isNotEmpty()) {
+                setupDayView(organizedEvents, hourWidth, heightOffset)
+            }
+        }
+    }
+
+    private suspend fun setupEmptyDayView() {
+        addViewOnMainThread(empty_day, emptyDayBuilder())
+    }
+
+    private suspend fun setupAllDayView(allDayEvents: List<EventWrapper>) {
+        addViewOnMainThread(all_day_container, allDayBuilder(allDayEvents))
+    }
+
+    private suspend fun setupDayView(organizedEvents: List<EventWrapper>,
+                                     hourWidth: Int,
+                                     heightOffset: Int)
+    {
         organizedEvents.forEach { event ->
             val ey = computeEventPosition(event) - heightOffset
             val ex = event.x.toInt() + hourWidth
             val eheight = computeEventHeight(event)
             val ewidth = event.width
 
-            val result = containerBuilder(
+            val result = dayBuilder(
                 context, event,
                 ex, ey, ewidth, eheight
             )
@@ -234,7 +350,7 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
 
             if (!constraintsSet) {
                 eventView.apply {
-                    val params = LayoutParams(ewidth, eheight)
+                    val params = RelativeLayout.LayoutParams(ewidth, eheight)
                     params.leftMargin = ex
                     params.topMargin = ey
 
@@ -242,19 +358,33 @@ class Day(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs
                 }
             }
 
-            addEventView(eventView)
+            addViewOnMainThread(day_container, eventView)
+        }
+    }
+
+    private suspend fun setViewsVisibility(isAllDayVisible: Boolean,
+                                   isDayVisible: Boolean,
+                                   isEmptyDayVisible: Boolean = !(isAllDayVisible || isDayVisible)
+    ) {
+        val convertVisibility = { isVisible: Boolean -> if (isVisible) VISIBLE else GONE }
+
+        withContext(Main) {
+            day_container.visibility = convertVisibility(isDayVisible)
+            all_day_container.visibility = convertVisibility(isAllDayVisible)
+            empty_day.visibility = convertVisibility(isEmptyDayVisible)
         }
     }
 
     /**
-     * Add a view to the day_container
+     * Add a view to the container
      * view on main thread.
      *
-     * @param view the view to add
+     * @param container The container view
+     * @param child The view to add
      */
-    private suspend fun addEventView(view: View) =
+    private suspend fun addViewOnMainThread(container: ViewGroup, child: View) =
         withContext(Main) {
-            day_container.addView(view)
+            container.addView(child)
         }
 
 

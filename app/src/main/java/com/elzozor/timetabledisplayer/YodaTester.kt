@@ -2,10 +2,12 @@ package com.elzozor.timetabledisplayer
 
 import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RelativeLayout
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.android.synthetic.main.yoda_tester_fragment.*
@@ -34,41 +36,99 @@ class YodaTester : Fragment() {
         return inflater.inflate(R.layout.yoda_tester_fragment, container, false)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        button2.setOnClickListener { generateRandomEvents() }
+        button_empty_day.setOnClickListener { generateEmptyDay() }
+        button_classic_day.setOnClickListener { generateClassicDay() }
+        button_classic_and_all_day.setOnClickListener { generateClassicAndAllDayDay() }
+
+        day_yoda.dayBuilder = { context, event, x, y, width, height ->
+            Pair(false, EventCardView(context).apply {
+                setEvent(event as Event)
+                setCardBackgroundColor(Color.parseColor(randomColor()))
+            })
+        }
+
+        day_yoda.allDayBuilder = { eventList ->
+            LinearLayout(context).apply {
+                eventList.forEach { event ->
+                    addView(
+                        EventCardView(context).apply {
+                            setBackgroundColor(Color.parseColor(randomColor()))
+                            setEvent(event as Event)
+
+                            layoutParams = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                            )
+                        }
+                    )
+                }
+
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+        }
+
+        day_yoda.emptyDayBuilder = {
+            TextView(context).apply {
+                gravity = Gravity.CENTER
+                text = "Nothing to show today !"
+            }
+        }
     }
 
-    private fun generateRandomEvents() {
+    private fun generateEmptyDay() {
         job?.cancel()
         job = lifecycleScope.launchWhenResumed {
-            day_yoda.setViewBuilder { context, event, x, y, width, height ->
-                Pair(true, EventCardView(context).apply {
-                    setBackgroundColor(Color.parseColor(randomColor()))
-                    setEvent(event as Event)
+            day_yoda.setEvents(listOf(), tester_main.height)
+        }
+    }
 
-                    val params = RelativeLayout.LayoutParams(width, height)
-                    params.leftMargin = x
-                    params.topMargin = y
+    private fun generateClassicDay() {
+        job?.cancel()
 
-                    layoutParams = params
-                })
-            }
+        job = lifecycleScope.launchWhenResumed {
 
             val events = withContext(Default) {
-                (0..1000).map {
+                (0..20).map {
                     randomEvent()
+                }.filter { !it.isAllDay() }
+            }
+
+            day_yoda.setEvents(events, tester_main.height)
+        }
+    }
+
+    private fun generateClassicAndAllDayDay() {
+        job?.cancel()
+
+        job = lifecycleScope.launchWhenResumed {
+
+            val events = withContext(Default) {
+                (0..10).map {
+                    randomEvent()
+                } + (0..10).map {
+                    randomEventAllDay()
                 }
             }
 
-            day_yoda.setEvents(events)
+            day_yoda.setEvents(events, tester_main.height)
         }
     }
 
     private fun randomEvent() : Event {
         val rand = Random()
         return createEvent(rand.nextInt(10) + 5, rand.nextInt(60), rand.nextInt(3))
+    }
+
+    private fun randomEventAllDay() : Event {
+        val rand = Random()
+        return createEvent(rand.nextInt(10) + 5, rand.nextInt(60), 0)
     }
 
 

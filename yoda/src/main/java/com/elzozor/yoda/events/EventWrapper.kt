@@ -15,4 +15,9 @@ abstract class EventWrapper {
      * @return the end date of the event
      */
     abstract fun end() : Date
+
+    /**
+     * @return Whether the event is all the day or not
+     */
+    abstract fun isAllDay() : Boolean
 }

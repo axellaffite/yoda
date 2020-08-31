@@ -9,6 +9,10 @@ class TimeUtils {
         private fun getCalendar() = Calendar.getInstance()
 
         fun onlyTimeAsMs(date: Date): Long {
+            return onlyTimeAsS(date) * 1000L
+        }
+
+        fun onlyTimeAsS(date: Date) : Long {
             val t = getCalendar().apply {
                 time = date
             }
@@ -16,15 +20,8 @@ class TimeUtils {
             val minutes = t.get(MINUTE)
             val seconds = t.get(SECOND)
 
-            return (((hours * 60L + minutes) * 60L + seconds) * 1000L)
+            return ((hours * 60L + minutes) * 60L + seconds)
         }
-
-
-        fun onlytime(timeInMillis: Long) =
-            getCalendar().apply {
-                this.timeInMillis = timeInMillis
-                set(0, 0, 0)
-            }.time.time
 
         fun rangeBetweenDates(dateA: Date, dateB: Date) : Long =
             abs(dateA.time - dateB.time)

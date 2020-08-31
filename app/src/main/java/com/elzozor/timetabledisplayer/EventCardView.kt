@@ -2,21 +2,12 @@ package com.elzozor.timetabledisplayer
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 import com.elzozor.yoda.events.EventWrapper
-import com.google.android.material.card.MaterialCardView
 import kotlinx.android.synthetic.main.event.view.*
 
 class EventCardView(context: Context,
-                    attrs: AttributeSet?): FrameLayout(context, attrs) {
-
-
-    constructor(context: Context,
-                attrs: AttributeSet?,
-                event: EventWrapper) : this(context, attrs) {
-        this.event = event
-    }
+                    attrs: AttributeSet?): CardView(context, attrs) {
 
     constructor(context: Context) : this(context, null)
 
@@ -24,6 +15,9 @@ class EventCardView(context: Context,
 
     init {
         inflate(context, R.layout.event, this)
+
+        radius = context.resources.getDimension(R.dimen.card_radius)
+        cardElevation = 0f
     }
 
     fun setEvent(event: Event) : EventCardView {
