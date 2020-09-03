@@ -4,7 +4,7 @@
 
 ## Example
 
-![](https://raw.githubusercontent.com/ElZozor/yoda/master/example/schedule.jpg)
+<img src="https://raw.githubusercontent.com/ElZozor/yoda/master/example/schedule.jpg" height="600">
 
 ## Gradle implementation
 
