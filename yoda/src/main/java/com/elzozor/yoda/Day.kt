@@ -19,7 +19,6 @@ import kotlinx.android.synthetic.main.day.view.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.withContext
-import java.io.InvalidObjectException
 import java.util.*
 import java.util.Calendar.HOUR_OF_DAY
 
@@ -167,26 +166,12 @@ class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, att
      *
      * @param events
      */
-    @Throws(InvalidObjectException::class)
-    suspend fun setEvents(events: List<EventWrapper>, containerHeight: Int) {
-        if (!this::dayBuilder.isInitialized) {
-            throw InvalidObjectException("You must initialize the 'dayBuilder' variable!")
-        }
-
-        if (!this::allDayBuilder.isInitialized) {
-            throw InvalidObjectException("You must initialize the 'allDayBuilder' variable!")
-        }
-
-        if (!this::emptyDayBuilder.isInitialized) {
-            throw InvalidObjectException("You must initialize the 'emptyDayBuilder' variable!")
-        }
-
+    suspend fun setEvents(events: List<EventWrapper>, containerHeight: Int) =
         organizeEventsInBackground(events, containerHeight)
-    }
 
 
     /**
-     * Provide a function that orgnanize the
+     * Provide a function that organize the
      * given events on a background thread.
      *
      * @param events The events to organize
