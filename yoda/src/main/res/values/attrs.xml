@@ -2,15 +2,27 @@
 <resources>
     <declare-styleable name="Day">
         <attr name="start" format="integer"/>
+
         <attr name="end" format="integer"/>
+
         <attr name="displayMode" format="enum">
             <enum name="EXPAND" value="0"/>
             <enum name="FIT_TO_CONTAINER" value="1"/>
         </attr>
+
         <attr name="fit" format="enum">
             <enum name="AUTO" value="0"/>
             <enum name="BOUNDS_ADAPTIVE" value="1"/>
             <enum name="BOUNDS_STRICT" value="2"/>
+        </attr>
+
+        <attr name="hoursFormat" format="enum">
+            <attr name="SIMPLE_SHORT" value="0"/>
+            <attr name="COMPLETE" value="1"/>
+            <attr name="COMPLETE_SHORT" value="2"/>
+            <attr name="COMPLETE_H" value="3"/>
+            <attr name="SIMPLE" value="4"/>
+            <attr name="COMPLETE_H_SHORT" value="5"/>
         </attr>
     </declare-styleable>
 </resources>

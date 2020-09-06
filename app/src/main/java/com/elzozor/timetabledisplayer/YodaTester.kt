@@ -95,7 +95,7 @@ class YodaTester : Fragment() {
         job = lifecycleScope.launchWhenResumed {
 
             val events = withContext(Default) {
-                (0..20).map {
+                (0..200).map {
                     randomEvent()
                 }.filter { !it.isAllDay() }
             }
