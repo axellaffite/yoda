@@ -138,6 +138,7 @@ class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, att
                 start = getInteger(R.styleable.Day_start, 0).coerceAtLeast(0)
                 end = getInteger(R.styleable.Day_end, 24).coerceAtMost(24)
                 displayMode = Display.values()[getInt(R.styleable.Day_displayMode,  0)]
+                hoursMode = HoursMode.values()[getInt(R.styleable.Day_hoursFormat, 2)]
                 fit = Fit.values()[getInt(R.styleable.Day_fit, 0)]
             } finally {
                 recycle()
