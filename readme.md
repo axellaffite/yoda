@@ -4,7 +4,7 @@
 
 ## Example
 
-My other application is made with this library : https://github.com/ElZozor/ut3_calendar
+My other application is made with this library : https://github.com/ElZozor/ut3_calendar  
 <img src="https://raw.githubusercontent.com/ElZozor/yoda/master/example/schedule.jpg" height="600">
 
 ## Gradle implementation
