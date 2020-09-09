@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.Calendar.HOUR_OF_DAY
 
-class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs) {
+class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
 
     /**
      * Defines the display mode.
@@ -55,13 +55,13 @@ class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, att
      *  - COMPLETE_H : 00h00 -> 23h00
      *  - COMPLETE_H_SHORT : 0h00 -> 23h00
      */
-    enum class HoursMode { SIMPLE, SIMPLE_SHORT, COMPLETE, COMPLETE_SHORT, COMPLETE_H, COMPLETE_H_SHORT }
+    enum class HoursMode { NONE, SIMPLE, SIMPLE_SHORT, COMPLETE, COMPLETE_SHORT, COMPLETE_H, COMPLETE_H_SHORT }
 
     /**
      * Defines the height of the hours.
      * Can be set in the xml.
      */
-    private var hoursMode = HoursMode.COMPLETE
+    var hoursMode = HoursMode.COMPLETE
 
     /**
     * Defines the height of the hours
@@ -74,8 +74,8 @@ class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, att
     * These two variable defines the start
     * and end hours of the Day view.
     */
-    private var start: Int
-    private var end: Int
+    var start: Int
+    var end: Int
 
     /**
     * Defines the display mode.
@@ -390,6 +390,10 @@ class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, att
      */
     private suspend fun addHoursToView(hourWidth: Int, hourHeight: Int, heightOffset: Int) =
         withContext(Default) {
+            if (hoursMode == HoursMode.NONE) {
+                return@withContext
+            }
+
             val hourText = getHoursFormat()
             for (hour in start until end) {
                 addViewOnMainThread(day_container, TextView(context).apply {
@@ -399,11 +403,11 @@ class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, att
                         this.leftMargin = 0
                         gravity = Gravity.CENTER_HORIZONTAL
                     }
-                }
-                )
+                })
             }
         }
 
+    @Throws(IllegalStateException::class)
     private fun getHoursFormat(): String {
         val res = when (hoursMode) {
             HoursMode.SIMPLE -> R.string.hours_simple
@@ -412,6 +416,7 @@ class Day(context: Context, attrs: AttributeSet) : ConstraintLayout(context, att
             HoursMode.COMPLETE_SHORT -> R.string.hours_complete_h_short
             HoursMode.COMPLETE_H -> R.string.hours_complete_h
             HoursMode.COMPLETE_H_SHORT -> R.string.hours_complete_h_short
+            HoursMode.NONE -> throw IllegalStateException("Hours are disabled")
         }
 
         return context.getString(res)
