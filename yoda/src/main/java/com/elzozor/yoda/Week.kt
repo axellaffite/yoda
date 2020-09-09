@@ -81,11 +81,23 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
 
     @ExperimentalTime
     suspend fun setEvents(from: Date, events: List<EventWrapper>, height: Int, width: Int) {
-        val days = (0..6).map { Day(context, null) }
-
         val fromClean = from.resetTime()
+        val dayCount = when {
+            events.any { it.begin() > fromClean + 6.days && it.begin() < fromClean + 7.days } -> {
+                7
+            }
+
+            events.any { it.begin() > fromClean + 5.days && it.begin() < fromClean + 6.days } -> {
+                6
+            }
+
+            else -> 5
+        }
+
+        val days = (0 until dayCount).map { Day(context, null) }
+
         val hourWidth = computeHourPlace()
-        val dayWidth = (width - hourWidth) / 7
+        val dayWidth = (width - hourWidth) / dayCount
         val min = events.map { it.begin().get(Calendar.HOUR_OF_DAY) }.minOrNull() ?: 7
         val max = events.map { it.end().get(Calendar.HOUR_OF_DAY) + 1 }.maxOrNull() ?: 20
 

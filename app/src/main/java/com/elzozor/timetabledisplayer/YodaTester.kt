@@ -172,7 +172,7 @@ class YodaTester : Fragment() {
 
         job = lifecycleScope.launchWhenResumed {
             val events =
-                (0..6).mapIndexed { index, _ ->
+                (0..4).mapIndexed { index, _ ->
                     generateDay(2019, 12, 21 + index)
                 }.flatten()
 
