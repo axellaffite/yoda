@@ -87,7 +87,7 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
         val fromClean = from.resetTime()
         val dayWidth = width / 7
         val min = events.map { it.begin().get(Calendar.HOUR_OF_DAY) }.minOrNull() ?: 7
-        val max = events.map { it.end().get(Calendar.HOUR_OF_DAY) }.maxOrNull() ?: 20
+        val max = events.map { it.end().get(Calendar.HOUR_OF_DAY) + 1 }.maxOrNull() ?: 20
 
         days.forEachIndexed { index, day ->
             day.dayBuilder = dayBuilder
