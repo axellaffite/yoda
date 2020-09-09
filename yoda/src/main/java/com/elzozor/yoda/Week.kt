@@ -8,6 +8,8 @@ import com.elzozor.yoda.events.EventWrapper
 import com.elzozor.yoda.utils.DateExtensions.get
 import com.elzozor.yoda.utils.DateExtensions.plus
 import com.elzozor.yoda.utils.DateExtensions.resetTime
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
@@ -115,6 +117,8 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
 
             day.setEvents(dayEvents, height, width / 7)
         }
+
+        days.forEach { withContext(Main) { addView(it) } }
     }
 
 }
