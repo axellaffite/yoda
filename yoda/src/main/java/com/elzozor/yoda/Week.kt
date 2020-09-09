@@ -4,21 +4,16 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.RelativeLayout
+import android.widget.TextView
 import com.elzozor.yoda.events.EventWrapper
 import com.elzozor.yoda.utils.DateExtensions.get
 import com.elzozor.yoda.utils.DateExtensions.plus
 import com.elzozor.yoda.utils.DateExtensions.resetTime
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
 
 class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attrs) {
-
-    init {
-        inflate(context, R.layout.day, this)
-    }
 
     /**
      * Defines the height of the hours.
@@ -82,12 +77,15 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
      */
     lateinit var emptyDayBuilder: () -> View
 
-    val days = (0..6).map { Day(context, null) }
+
 
     @ExperimentalTime
     suspend fun setEvents(from: Date, events: List<EventWrapper>, height: Int, width: Int) {
+        val days = (0..6).map { Day(context, null) }
+
         val fromClean = from.resetTime()
-        val dayWidth = width / 7
+        val hourWidth = computeHourPlace()
+        val dayWidth = (width - hourWidth) / 7
         val min = events.map { it.begin().get(Calendar.HOUR_OF_DAY) }.minOrNull() ?: 7
         val max = events.map { it.end().get(Calendar.HOUR_OF_DAY) + 1 }.maxOrNull() ?: 20
 
@@ -96,15 +94,12 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
             day.allDayBuilder = allDayBuilder
             day.emptyDayBuilder = emptyDayBuilder
 
-            day.hoursMode =
-                if (index == 0) { hoursMode }
-                else { Day.HoursMode.NONE }
-
+            day.hoursMode = Day.HoursMode.NONE
             day.start = min
             day.end = max
             day.displayMode = displayMode
             day.fit = fit
-            day.x = (dayWidth * index).toFloat()
+            day.x = hourWidth + (dayWidth * index)
             day.y = 0f
             day.layoutParams = RelativeLayout.LayoutParams(width, height)
 
@@ -115,10 +110,51 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
                 && it.end() < currentDate + 1.days
             }
 
-            day.setEvents(dayEvents, height, width / 7)
+            day.setEvents(dayEvents, height, dayWidth.toInt())
         }
 
-        days.forEach { withContext(Main) { addView(it) } }
+        removeAllViews()
+        generateHours(start, end, height, hourWidth.toInt())
+        days.forEach { addView(it) }
+    }
+
+    private fun computeHourPlace(): Float {
+        val resID = getHourResource()
+
+        val text = resID?.run {
+            context.getString(resID).format(23,59)
+        } ?: ""
+
+        return TextView(context).paint.measureText(text)
+    }
+
+    private fun generateHours(start: Int, end: Int, height: Int, hourWidth: Int) {
+        val res = getHourResource()
+        res?.also {
+            val textFormat = context.getString(it)
+            val hourHeight = (height / (end - start)).toFloat()
+
+            (start..end).forEachIndexed { index, hour ->
+                addView(
+                    TextView(context).apply {
+                        text = textFormat.format(hour, 0)
+                        x = 0f
+                        y = index * hourHeight
+                        layoutParams = RelativeLayout.LayoutParams(hourWidth, hourHeight.toInt())
+                    }
+                )
+            }
+        }
+    }
+
+    private fun getHourResource() = when (hoursMode) {
+        Day.HoursMode.NONE -> null
+        Day.HoursMode.SIMPLE -> R.string.hours_simple
+        Day.HoursMode.SIMPLE_SHORT -> R.string.hours_simple_short
+        Day.HoursMode.COMPLETE -> R.string.hours_complete
+        Day.HoursMode.COMPLETE_SHORT -> R.string.hours_complete_short
+        Day.HoursMode.COMPLETE_H -> R.string.hours_complete_h
+        Day.HoursMode.COMPLETE_H_SHORT -> R.string.hours_complete_h_short
     }
 
 }

@@ -181,10 +181,8 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
             checkHoursFit(events)
             updateHourHeight(containerHeight)
 
-            val hourWidth = width / 10
-            val eventsWidth =
-                if (hoursMode == HoursMode.NONE) { width }
-                else { width - hourWidth }
+            val hourWidth = computeHourPlace().toInt()
+            val eventsWidth = width - hourWidth
 
             val heightOffset = start * hourHeight
 
@@ -197,7 +195,7 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
 
 
     /**
-     * If the autoFithours var is set to true,
+     * If the autoFitHours var is set to true,
      * this function will automatically fits
      * the starting and ending hours to the
      * events bounds.
@@ -465,6 +463,25 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
 
     private fun computeEventHeight(event: EventWrapper) =
         (millisecondsToHours(rangeBetweenDates(event.begin(), event.end())) * hourHeight).toInt()
+
+
+    fun computeHourPlace(): Float {
+        var resID = when (hoursMode) {
+            HoursMode.NONE -> null
+            HoursMode.SIMPLE -> R.string.hours_simple
+            HoursMode.SIMPLE_SHORT -> R.string.hours_simple_short
+            HoursMode.COMPLETE -> R.string.hours_complete
+            HoursMode.COMPLETE_SHORT -> R.string.hours_complete_short
+            HoursMode.COMPLETE_H -> R.string.hours_complete_h
+            HoursMode.COMPLETE_H_SHORT -> R.string.hours_complete_h_short
+        }
+
+        val text = resID?.run {
+            context.getString(resID).format(23,59)
+        } ?: ""
+
+        return TextView(context).paint.measureText(text)
+    }
 }
 
 

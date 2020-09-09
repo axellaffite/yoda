@@ -17,18 +17,37 @@
         app:layout_constraintTop_toTopOf="parent"
         android:fillViewport="true">
 
-        <com.elzozor.yoda.Day
-            android:id="@+id/day_yoda"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:displayMode="FIT_TO_CONTAINER"
-            app:hoursFormat="COMPLETE_H"
-            app:end="20"
-            app:fit="AUTO"
-            app:start="6">
+            android:layout_height="wrap_content">
 
-        </com.elzozor.yoda.Day>
+            <com.elzozor.yoda.Week
+                android:id="@+id/week"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <com.elzozor.yoda.Day
+                android:id="@+id/day_yoda"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:displayMode="FIT_TO_CONTAINER"
+                app:hoursFormat="COMPLETE_H"
+                app:end="20"
+                app:fit="AUTO"
+                app:start="6"
+                android:visibility="gone"/>
+
+        </FrameLayout>
+
     </ScrollView>
+
+    <Button
+        android:id="@+id/button_week"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="Week"
+        app:layout_constraintBottom_toTopOf="@+id/button_empty_day"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/button_empty_day"
