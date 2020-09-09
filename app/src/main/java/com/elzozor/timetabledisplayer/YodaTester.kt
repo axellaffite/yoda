@@ -85,7 +85,7 @@ class YodaTester : Fragment() {
     private fun generateEmptyDay() {
         job?.cancel()
         job = lifecycleScope.launchWhenResumed {
-            day_yoda.setEvents(listOf(), tester_main.height)
+            day_yoda.setEvents(listOf(), tester_main.height, tester_main.width)
         }
     }
 
@@ -100,7 +100,7 @@ class YodaTester : Fragment() {
                 }.filter { !it.isAllDay() }
             }
 
-            day_yoda.setEvents(events, tester_main.height)
+            day_yoda.setEvents(events, tester_main.height, tester_main.width)
         }
     }
 
@@ -117,7 +117,7 @@ class YodaTester : Fragment() {
                 }
             }
 
-            day_yoda.setEvents(events, tester_main.height)
+            day_yoda.setEvents(events, tester_main.height, tester_main.width)
         }
     }
 

@@ -210,21 +210,21 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
 
         when (fit) {
             Fit.AUTO -> {
-                startDate.get(HOUR_OF_DAY)?.let {
+                startDate?.get(HOUR_OF_DAY)?.let {
                     start = it
                 }
 
-                endDate.get(HOUR_OF_DAY)?.let {
+                endDate?.get(HOUR_OF_DAY)?.let {
                     end = it + 1
                 }
             }
 
             Fit.BOUNDS_ADAPTIVE -> {
-                startDate.get(HOUR_OF_DAY)?.let {
+                startDate?.get(HOUR_OF_DAY)?.let {
                     start = start.coerceAtMost(it)
                 }
 
-                endDate.get(HOUR_OF_DAY)?.let {
+                endDate?.get(HOUR_OF_DAY)?.let {
                     end = end.coerceAtLeast(it + 1)
                 }
             }
