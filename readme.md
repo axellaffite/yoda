@@ -4,6 +4,7 @@
 
 ## Example
 
+My other application is made with this library : https://github.com/ElZozor/ut3_calendar  
 <img src="https://raw.githubusercontent.com/ElZozor/yoda/master/example/schedule.jpg" height="600">
 
 ## Gradle implementation
@@ -60,6 +61,7 @@ There a 4 options that are available on the Day component :
  - __end__ : Defines the start hour of the Day
  - __fit__ : Defines how the Day will fit the Events hours
  - __display__ : Defines how the Day will expand its height
+ - __hoursFormat__ : Defines how the hours are displayed
 
 ##### Explanations : Fit  
 Fit defines how the Day component will adapt its hours to the Event ones.
