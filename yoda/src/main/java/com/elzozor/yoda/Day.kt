@@ -166,8 +166,8 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
      *
      * @param events
      */
-    suspend fun setEvents(events: List<EventWrapper>, containerHeight: Int) =
-        organizeEventsInBackground(events, containerHeight)
+    suspend fun setEvents(events: List<EventWrapper>, containerHeight: Int, width: Int) =
+        organizeEventsInBackground(events, containerHeight, width)
 
 
     /**
@@ -176,14 +176,16 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
      *
      * @param events The events to organize
      */
-    private suspend fun organizeEventsInBackground(events: List<EventWrapper>, containerHeight: Int) =
+    private suspend fun organizeEventsInBackground(events: List<EventWrapper>, containerHeight: Int, width: Int) =
         withContext(Default) {
             checkHoursFit(events)
             updateHourHeight(containerHeight)
 
-            val totalWidth = day_container.width
-            val hourWidth = totalWidth / 10
-            val eventsWidth = totalWidth - hourWidth
+            val hourWidth = width / 10
+            val eventsWidth =
+                if (hoursMode == HoursMode.NONE) { width }
+                else { width - hourWidth }
+
             val heightOffset = start * hourHeight
 
             val allDayEvents = events.filter { it.isAllDay() }

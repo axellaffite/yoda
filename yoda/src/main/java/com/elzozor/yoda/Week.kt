@@ -3,19 +3,18 @@ package com.elzozor.yoda
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import com.elzozor.yoda.events.EventWrapper
+import com.elzozor.yoda.utils.DateExtensions.get
 import com.elzozor.yoda.utils.DateExtensions.plus
 import com.elzozor.yoda.utils.DateExtensions.resetTime
 import java.util.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
 
-class Week(context: Context, attrs: AttributeSet?): LinearLayout(context, attrs) {
+class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attrs) {
 
     init {
-        orientation = HORIZONTAL
-
         inflate(context, R.layout.day, this)
     }
 
@@ -84,21 +83,28 @@ class Week(context: Context, attrs: AttributeSet?): LinearLayout(context, attrs)
     val days = (0..6).map { Day(context, null) }
 
     @ExperimentalTime
-    suspend fun setEvents(from: Date, events: List<EventWrapper>, containerHeight: Int) {
+    suspend fun setEvents(from: Date, events: List<EventWrapper>, height: Int, width: Int) {
         val fromClean = from.resetTime()
+        val dayWidth = width / 7
+        val min = events.map { it.begin().get(Calendar.HOUR_OF_DAY) }.minOrNull() ?: 7
+        val max = events.map { it.end().get(Calendar.HOUR_OF_DAY) }.maxOrNull() ?: 20
+
         days.forEachIndexed { index, day ->
             day.dayBuilder = dayBuilder
             day.allDayBuilder = allDayBuilder
             day.emptyDayBuilder = emptyDayBuilder
 
             day.hoursMode =
-                if (index == 0) { Day.HoursMode.NONE }
-                else { hoursMode }
+                if (index == 0) { hoursMode }
+                else { Day.HoursMode.NONE }
 
-            day.start = start
-            day.end = end
+            day.start = min
+            day.end = max
             day.displayMode = displayMode
             day.fit = fit
+            day.x = (dayWidth * index).toFloat()
+            day.y = 0f
+            day.layoutParams = RelativeLayout.LayoutParams(width, height)
 
 
             val currentDate = fromClean + index.days
@@ -107,7 +113,7 @@ class Week(context: Context, attrs: AttributeSet?): LinearLayout(context, attrs)
                 && it.end() < currentDate + 1.days
             }
 
-            day.setEvents(dayEvents, containerHeight)
+            day.setEvents(dayEvents, height, width / 7)
         }
     }
 

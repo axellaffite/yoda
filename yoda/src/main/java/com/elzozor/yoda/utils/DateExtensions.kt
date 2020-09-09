@@ -5,12 +5,10 @@ import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
 object DateExtensions {
-    fun Date?.get(field: Int): Int? {
-        return this?.let {
-            val calendar = Calendar.getInstance()
-            calendar.time = it
-            calendar.get(field)
-        }
+    fun Date.get(field: Int): Int {
+        val calendar = Calendar.getInstance()
+        calendar.time = this
+        return calendar.get(field)
     }
 
     fun Date.resetTime() : Date {
