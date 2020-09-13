@@ -6,12 +6,10 @@ import android.view.View
 import android.widget.RelativeLayout
 import android.widget.TextView
 import com.elzozor.yoda.events.EventWrapper
+import com.elzozor.yoda.utils.DateExtensions.add
 import com.elzozor.yoda.utils.DateExtensions.get
-import com.elzozor.yoda.utils.DateExtensions.plus
 import com.elzozor.yoda.utils.DateExtensions.resetTime
 import java.util.*
-import kotlin.time.ExperimentalTime
-import kotlin.time.days
 
 class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attrs) {
 
@@ -79,15 +77,15 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
 
 
 
-    @ExperimentalTime
+
     suspend fun setEvents(from: Date, events: List<EventWrapper>, height: Int, width: Int) {
         val fromClean = from.resetTime()
         val dayCount = when {
-            events.any { it.begin() > fromClean + 6.days && it.begin() < fromClean + 7.days } -> {
+            events.any { it.begin() > fromClean.add(Calendar.DAY_OF_YEAR, 6) && it.begin() < fromClean.add(Calendar.DAY_OF_YEAR, 7)} -> {
                 7
             }
 
-            events.any { it.begin() > fromClean + 5.days && it.begin() < fromClean + 6.days } -> {
+            events.any { it.begin() > fromClean.add(Calendar.DAY_OF_YEAR, 5) && it.begin() < fromClean.add(Calendar.DAY_OF_YEAR, 6) } -> {
                 6
             }
 
@@ -113,13 +111,13 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
             day.fit = fit
             day.x = hourWidth + (dayWidth * index)
             day.y = 0f
-            day.layoutParams = RelativeLayout.LayoutParams(width, height)
+            day.layoutParams = LayoutParams(width, height)
 
 
-            val currentDate = fromClean + index.days
+            val currentDate = fromClean.add(Calendar.DAY_OF_YEAR, index)
             val dayEvents = events.filter {
                 it.begin() > currentDate
-                && it.end() < currentDate + 1.days
+                && it.end() < currentDate.add(Calendar.DAY_OF_YEAR, 1)
             }
 
             day.setEvents(dayEvents, height, dayWidth.toInt())
@@ -152,7 +150,7 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
                         text = textFormat.format(hour, 0)
                         x = 0f
                         y = index * hourHeight
-                        layoutParams = RelativeLayout.LayoutParams(hourWidth, hourHeight.toInt())
+                        layoutParams = LayoutParams(hourWidth, hourHeight.toInt())
                     }
                 )
             }

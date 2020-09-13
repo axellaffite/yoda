@@ -6,6 +6,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -190,7 +191,7 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
             val organizedEvents = organizeEvents(events.filter { !it.isAllDay() }, eventsWidth)
 
             clearViews()
-            addEventsToView(allDayEvents, organizedEvents, hourWidth, heightOffset)
+            addEventsToView(allDayEvents, organizedEvents, containerHeight, width, hourWidth, heightOffset)
         }
 
 
@@ -283,16 +284,18 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
     private suspend fun addEventsToView (
         allDayEvents: List<EventWrapper>,
         organizedEvents: List<EventWrapper>,
+        totalHeight: Int,
+        totalWidth: Int,
         hourWidth: Int,
         heightOffset: Int
     ) {
         setViewsVisibility(allDayEvents.isNotEmpty(), organizedEvents.isNotEmpty())
 
         if (allDayEvents.isEmpty() && organizedEvents.isEmpty()) {
-            setupEmptyDayView()
+            setupEmptyDayView(totalWidth, totalHeight)
         } else {
             if (allDayEvents.isNotEmpty()) {
-                setupAllDayView(allDayEvents)
+                setupAllDayView(allDayEvents, totalWidth)
             }
 
             if (organizedEvents.isNotEmpty()) {
@@ -306,8 +309,12 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
      * view that is shown when the event list
      * is empty.
      */
-    private suspend fun setupEmptyDayView() {
-        addViewOnMainThread(empty_day, emptyDayBuilder())
+    private suspend fun setupEmptyDayView(width: Int, height: Int) {
+        val ed = emptyDayBuilder().apply {
+            layoutParams = LayoutParams(width, height)
+        }
+
+        addViewOnMainThread(empty_day, ed)
     }
 
     /**
@@ -318,8 +325,12 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
      * @param allDayEvents The events that are considered
      * as "all day"
      */
-    private suspend fun setupAllDayView(allDayEvents: List<EventWrapper>) {
-        addViewOnMainThread(all_day_container, allDayBuilder(allDayEvents))
+    private suspend fun setupAllDayView(allDayEvents: List<EventWrapper>, width: Int) {
+        val ad = allDayBuilder(allDayEvents).apply {
+            layoutParams = LayoutParams(width, WRAP_CONTENT)
+        }
+
+        addViewOnMainThread(all_day_container, ad)
     }
 
     /**
@@ -465,8 +476,8 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
         (millisecondsToHours(rangeBetweenDates(event.begin(), event.end())) * hourHeight).toInt()
 
 
-    fun computeHourPlace(): Float {
-        var resID = when (hoursMode) {
+    private fun computeHourPlace(): Float {
+        val resID = when (hoursMode) {
             HoursMode.NONE -> null
             HoursMode.SIMPLE -> R.string.hours_simple
             HoursMode.SIMPLE_SHORT -> R.string.hours_simple_short

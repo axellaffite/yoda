@@ -23,7 +23,6 @@ import kotlinx.coroutines.withContext
 import org.koin.android.architecture.ext.viewModel
 import java.util.*
 import java.util.Calendar.HOUR
-import kotlin.time.ExperimentalTime
 
 
 class YodaTester : Fragment() {
@@ -79,7 +78,6 @@ class YodaTester : Fragment() {
         text = "Nothing to show today !"
     }
 
-    @ExperimentalTime
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -162,17 +160,16 @@ class YodaTester : Fragment() {
         }
     }
 
-    @ExperimentalTime
     private fun generateWeek() {
         job?.cancel()
 
         suspend fun generateDay(year: Int, month: Int, day: Int) = withContext(Default) {
-            (0..6).map { randomEvent(year, month, day) }.filter { !it.isAllDay() }
+            (0..6).map { randomEvent(year, month, day) }
         }
 
         job = lifecycleScope.launchWhenResumed {
             val events =
-                (0..4).mapIndexed { index, _ ->
+                (0..0).mapIndexed { index, _ ->
                     generateDay(2019, 12, 21 + index)
                 }.flatten()
 

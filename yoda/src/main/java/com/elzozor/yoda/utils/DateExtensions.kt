@@ -1,8 +1,6 @@
 package com.elzozor.yoda.utils
 
 import java.util.*
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 
 object DateExtensions {
     fun Date.get(field: Int): Int {
@@ -22,8 +20,8 @@ object DateExtensions {
         }.time
     }
 
-    @ExperimentalTime
-    operator fun Date.plus(duration: Duration) = Date(
-        time + duration.inMilliseconds.toLong()
-    )
+    fun Date.add(field: Int, amount: Int) = Calendar.getInstance().apply {
+        time = this@add
+        add(field, amount)
+    }.time
 }
