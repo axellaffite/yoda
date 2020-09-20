@@ -108,7 +108,7 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
             day.start = min
             day.end = max
             day.displayMode = displayMode
-            day.fit = fit
+            day.fit = Day.Fit.BOUNDS_STRICT
             day.x = hourWidth + (dayWidth * index)
             day.y = 0f
             day.layoutParams = LayoutParams(width, height)
