@@ -31,14 +31,14 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
      * See the enum class Display documentation
      * above.
      */
-    var displayMode = Day.Display.EXPAND
+    var displayMode = Day.Display.FIT_TO_CONTAINER
 
     /**
      * Defines the fit mode.
      * Se tge enum class Fit
      * documentation above.
      */
-    var fit = Day.Fit.AUTO
+    val fit = Day.Fit.BOUNDS_STRICT
 
     /**
      * This function defines how the Events views
@@ -96,8 +96,11 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
 
         val hourWidth = computeHourPlace()
         val dayWidth = (width - hourWidth) / dayCount
-        val min = events.map { it.begin().get(Calendar.HOUR_OF_DAY) }.minOrNull() ?: 7
-        val max = events.map { it.end().get(Calendar.HOUR_OF_DAY) + 1 }.maxOrNull() ?: 20
+        var min = events.map { it.begin().get(Calendar.HOUR_OF_DAY) }.minOrNull() ?: 7
+        var max = events.map { it.end().get(Calendar.HOUR_OF_DAY) + 1 }.maxOrNull() ?: 20
+
+        min = min.coerceAtMost(start)
+        max = max.coerceAtLeast(end)
 
         days.forEachIndexed { index, day ->
             day.dayBuilder = dayBuilder
@@ -124,7 +127,7 @@ class Week(context: Context, attrs: AttributeSet?): RelativeLayout(context, attr
         }
 
         removeAllViews()
-        generateHours(start, end, height, hourWidth.toInt())
+        generateHours(min, max, height, hourWidth.toInt())
         days.forEach { addView(it) }
     }
 

@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import org.koin.android.architecture.ext.viewModel
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Calendar.HOUR
 
@@ -101,7 +102,6 @@ class YodaTester : Fragment() {
 
             emptyDayBuilder = this@YodaTester::emptyDayBuilder
 
-            fit = Day.Fit.BOUNDS_ADAPTIVE
             hoursMode = Day.HoursMode.COMPLETE
             displayMode = Day.Display.FIT_TO_CONTAINER
             start = 7
@@ -169,9 +169,9 @@ class YodaTester : Fragment() {
 
         job = lifecycleScope.launchWhenResumed {
             val events =
-                (0..0).mapIndexed { index, _ ->
+                (0..6).mapIndexed { index, _ ->
                     generateDay(2019, 12, 21 + index)
-                }.flatten()
+                }.flatten().filter { !it.isAllDay() }
 
             val start = events.minOfOrNull { it.begin }!!
             week.setEvents(start, events, tester_main.height, tester_main.width)
@@ -196,9 +196,26 @@ class YodaTester : Fragment() {
     private fun createEvent(year: Int, month: Int, day: Int, hour: Int, minute: Int, time : Int) : Event {
         val c = Calendar.getInstance()
         c.set(year, month, day, hour, minute, 0)
-        val deb = c.time
+        val deb = object: Date() {
+            init {
+                setTime(c.time.time)
+            }
+
+            override fun toString(): String {
+                return SimpleDateFormat("HH:mm").format(getTime())
+            }
+        }
+
         c.add(HOUR, time)
-        val fin = c.time
+        val fin = object: Date() {
+            init {
+                setTime(c.time.time)
+            }
+
+            override fun toString(): String {
+                return SimpleDateFormat("HH:mm").format(getTime())
+            }
+        }
 
         return Event(
             deb,

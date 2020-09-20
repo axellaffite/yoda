@@ -22,7 +22,7 @@ class EventCardView(context: Context,
 
     fun setEvent(event: Event) : EventCardView {
         this.event = event
-        title.text = event.title
+        title.text = event.begin().toString()
         return this
     }
 }
