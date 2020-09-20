@@ -1,11 +1,11 @@
 # Yoda
 
-[![](https://jitpack.io/v/ElZozor/yoda.svg)](https://jitpack.io/#ElZozor/yoda)
+[![](https://jitpack.io/v/axellaffite/yoda.svg)](https://jitpack.io/#axellaffite/yoda)
 
 ## Example
 
-My other application is made with this library : https://github.com/ElZozor/ut3_calendar  
-<img src="https://raw.githubusercontent.com/ElZozor/yoda/master/example/schedule.jpg" height="600">
+My other application is made with this library : https://github.com/axellaffite/ut3_calendar  
+<img src="https://raw.githubusercontent.com/axellaffite/yoda/master/example/schedule.jpg" height="600">
 
 ## Gradle implementation
 
@@ -23,7 +23,7 @@ __Step 2.__ Add the Yoda dependency to your project Gradle file :
 
 You must replace `version_number` with the version provided above.
 ```
-implementation 'com.github.ElZozor:yoda:version_number'
+implementation 'com.github.axellaffite:yoda:version_number'
 ```
 
 ## Abstract
