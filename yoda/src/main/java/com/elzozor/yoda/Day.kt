@@ -19,7 +19,6 @@ import com.elzozor.yoda.utils.TimeUtils.Companion.rangeBetweenDates
 import kotlinx.android.synthetic.main.day.view.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.Calendar.HOUR_OF_DAY
@@ -363,7 +362,6 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
         }
 
         organizedEvents.forEach { event ->
-            delay(200)
             val ey = computeEventPosition(event) - heightOffset
             val ex = event.x.toInt() + hourWidth
             val eheight = computeEventHeight(event)
