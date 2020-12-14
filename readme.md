@@ -1,7 +1,5 @@
 # Yoda
 
-[![](https://jitpack.io/v/axellaffite/yoda.svg)](https://jitpack.io/#axellaffite/yoda)
-
 ## Example
 
 My other application is made with this library : https://github.com/axellaffite/ut3_calendar  
@@ -10,7 +8,7 @@ My other application is made with this library : https://github.com/axellaffite/
 ## Gradle implementation
 
 __Step 1.__ Add the Jitpack repository to you build file :
-```
+```gradle
 allprojects {
 	repositories {
 		...
@@ -21,8 +19,8 @@ allprojects {
 
 __Step 2.__ Add the Yoda dependency to your project Gradle file :
 
-You must replace `version_number` with the version provided above.
-```
+You must replace `version_number` with this version : [![](https://jitpack.io/v/axellaffite/yoda.svg)](https://jitpack.io/#axellaffite/yoda).
+```gradle
 implementation 'com.github.axellaffite:yoda:version_number'
 ```
 
