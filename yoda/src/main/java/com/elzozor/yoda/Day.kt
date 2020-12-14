@@ -167,8 +167,9 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
      *
      * @param events
      */
-    suspend fun setEvents(events: List<EventWrapper>, containerHeight: Int, width: Int) =
+    suspend fun setEvents(events: List<EventWrapper>, containerHeight: Int, width: Int) {
         organizeEventsInBackground(events, containerHeight, width)
+    }
 
 
     /**
@@ -253,13 +254,13 @@ class Day(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, at
         withContext(Default) {
             val cal = Calendar.getInstance()
 
-            EventOrganizer(events.filter {
-                cal.time = it.begin()
+            EventOrganizer(events.filter { event ->
+                cal.time = event.begin()
                 val hourBeg = cal.get(HOUR_OF_DAY)
-                cal.time = it.end()
+                cal.time = event.end()
                 val hourEnd = cal.get(HOUR_OF_DAY)
 
-                hourBeg >= start && hourEnd <= end && hourBeg < hourEnd
+                hourBeg >= start && hourEnd <= end && event.begin() < event.end()
             }).organize(screenWidth)
         }
 

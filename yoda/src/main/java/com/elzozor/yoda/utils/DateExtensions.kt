@@ -20,8 +20,36 @@ object DateExtensions {
         }.time
     }
 
-    fun Date.add(field: Int, amount: Int) = Calendar.getInstance().apply {
-        time = this@add
-        add(field, amount)
-    }.time
+    fun Date.add(field: Int, amount: Int): Date {
+        val calendar = Calendar.getInstance()
+        calendar.apply {
+            time = this@add
+            add(field, amount)
+        }
+
+        return calendar.time
+    }
+
+    fun Date.setup(
+        year: Int,
+        month: Int = Calendar.JANUARY,
+        day: Int = 1,
+        hour: Int = 0,
+        minute: Int = 0,
+        second: Int = 0,
+        millisecond: Int = 0
+    ): Date {
+        val calendar = Calendar.getInstance()
+        calendar.apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.DAY_OF_MONTH, day)
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, second)
+            set(Calendar.MILLISECOND, millisecond)
+        }
+
+        return calendar.time
+    }
 }

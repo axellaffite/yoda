@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 import org.koin.android.architecture.ext.viewModel
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.Calendar.HOUR
+import java.util.Calendar.MINUTE
 
 
 class YodaTester : Fragment() {
@@ -127,7 +127,7 @@ class YodaTester : Fragment() {
 
             val events = withContext(Default) {
                 (0..10).map {
-                    randomEvent()
+                    createEvent(2020, 10, 10, Random().nextInt(5) + 10, 5, Random().nextInt(60))
                 }.filter { !it.isAllDay() }
             }
 
@@ -184,7 +184,7 @@ class YodaTester : Fragment() {
 
     private fun randomEvent(year: Int = 2019, month: Int = 12, day: Int = 21) : Event {
         val rand = Random()
-        return createEvent(year, month, day,rand.nextInt(10) + 5, rand.nextInt(60), rand.nextInt(3))
+        return createEvent(year, month, day,rand.nextInt(10) + 5, rand.nextInt(60), rand.nextInt(120))
     }
 
     private fun randomEventAllDay(year: Int = 2019, month: Int = 12, day: Int = 21) : Event {
@@ -206,7 +206,7 @@ class YodaTester : Fragment() {
             }
         }
 
-        c.add(HOUR, time)
+        c.add(MINUTE, time)
         val fin = object: Date() {
             init {
                 setTime(c.time.time)

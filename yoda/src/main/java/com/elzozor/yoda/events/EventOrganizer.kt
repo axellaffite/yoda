@@ -14,15 +14,16 @@ class EventOrganizer (events: List<EventWrapper>) {
         // We then sort them by their start time
         // and by their end time in case if their
         // start time are the same.
-        this.events = events.map { CollisionEventWrapper(it) }
-            .sortedWith(Comparator { o1, o2 ->
-                var comp = o1.begin().compareTo(o2.begin())
+        this.events = events
+            .map { CollisionEventWrapper(it) }
+            .sortedWith { eventA, eventB ->
+                var comp = eventA.begin().compareTo(eventB.begin())
                 if (comp == 0) {
-                    comp = o2.end().compareTo(o1.end())
+                    comp = eventB.end().compareTo(eventA.end())
                 }
 
                 comp
-            })
+            }
     }
 
     /**
@@ -37,16 +38,17 @@ class EventOrganizer (events: List<EventWrapper>) {
     fun organize(width: Int) : List<EventWrapper> {
         // This will contain the events by columns.
         val columns = ArrayList<ArrayList<CollisionEventWrapper>>()
+
         // This will contain the maximum event end time
         // and will be updated along the loop.
         var lastEventEnding : Date? = null
 
-        events.forEach { event ->
+        for (event in events) {
             // If the current event is after all the previous
             // events ( it begin after the maximum end )
             // we can pack them as they are a group
             // which will never intersects an other one.
-            if (lastEventEnding != null && event.begin() >= lastEventEnding) {
+            lastEventEnding?.takeIf { event.begin() > it }?.let {
                 packEvents(columns, width)
                 columns.clear()
                 lastEventEnding = null
@@ -55,8 +57,7 @@ class EventOrganizer (events: List<EventWrapper>) {
             // We insert the event in the first column
             // where it doesn't intersect an other event
             var placed = false
-            for (i in 0 until columns.size) {
-                val column = columns[i]
+            for (column in columns) {
                 if (!event.intersects(column.last())) {
                     column.add(event)
                     placed = true
@@ -68,16 +69,15 @@ class EventOrganizer (events: List<EventWrapper>) {
             // the event, we simply create a new column
             // for it.
             if (!placed) {
-                val newList = ArrayList<CollisionEventWrapper>()
-                newList.add(event)
-
-                columns.add(newList)
+                columns.add(arrayListOf(event))
             }
 
             // We finally update the lastEventEnding
             // to maintain it as the maximum of all the
             // events.end() values.
-            lastEventEnding = lastEventEnding?.coerceAtLeast(event.end()) ?: event.end()
+            if (lastEventEnding == null || event.end() > lastEventEnding) {
+                lastEventEnding = event.end()
+            }
         }
 
         // If there is a remaining column
@@ -101,14 +101,12 @@ class EventOrganizer (events: List<EventWrapper>) {
      * @param width The width
      */
     private fun packEvents(columns: ArrayList<ArrayList<CollisionEventWrapper>>, width: Int) {
-        for (i in 0 until columns.size) {
-            val column = columns[i]
-            for (j in 0 until column.size) {
-                val event = column[j]
-                val colSpan = expandEvent(event, i, columns)
+        for ((index, actualColumn) in columns.withIndex()) {
+            for (eventWrapper in actualColumn) {
+                val colSpan = expandEvent(eventWrapper, index, columns)
 
-                event.event.x = (i * width / columns.size).toFloat()
-                event.event.width = (width * colSpan / columns.size).toInt()
+                eventWrapper.event.x = ((index * width).toFloat() / columns.size.toFloat())
+                eventWrapper.event.width = (width * colSpan / columns.size.toFloat()).toInt()
             }
         }
     }
@@ -118,19 +116,23 @@ class EventOrganizer (events: List<EventWrapper>) {
      * This function expand the event until
      * it intersects an another event.
      *
-     * @param event The event to expand
-     * @param col The current column of the event
+     * @param eventToExpand The event to expand
+     * @param columnIndex The current column of the event
      * @param columns The events packed into columns
      * @return The event width in columns
      */
-    private fun expandEvent(event: CollisionEventWrapper, col: Int, columns: ArrayList<ArrayList<CollisionEventWrapper>>) : Float{
+    private fun expandEvent(
+        eventToExpand: CollisionEventWrapper,
+        columnIndex: Int,
+        columns: ArrayList<ArrayList<CollisionEventWrapper>>
+    ) : Float{
         var colSpan = 1.0f
 
-        for (i in col + 1 until columns.size) {
-            val column = columns[i]
-            for (current in column) {
-                event.column = i
-                if (event.intersects(current)) {
+        val remainingColumns = columns.subList(columnIndex + 1, columns.size)
+        for ((index, column) in remainingColumns.withIndex()) {
+            for (event in column) {
+                eventToExpand.column = index
+                if (eventToExpand.intersects(event)) {
                     return colSpan
                 }
             }
